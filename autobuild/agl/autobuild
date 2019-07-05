@@ -1,0 +1,22 @@
+#!/bin/bash
+
+SOURCE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )/../../../"
+BUILD_DIR=$( echo "$2" | cut -d'=' -f2 )
+
+# HACK: alias should be expanded in script for cmake to work properly
+shopt -s expand_aliases
+# HACK: source again the SDK because of the alias
+source $SDKTARGETSYSROOT/../../environment-setup-*
+
+pushd $BUILD_DIR
+
+	cmake $SOURCE_DIR
+	make
+
+	if [ "$1" == "package" ]; then
+		make widget
+		cp *.wgt package/
+	fi
+
+popd
+
