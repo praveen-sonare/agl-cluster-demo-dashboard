@@ -80,7 +80,7 @@ ApplicationWindow {
     Rectangle {
         id: statusFrame
         x: (parent.width - width) / 2
-        y: 80
+        y: 40
         width: 1152
         height: 96
         radius: height / 5
@@ -340,8 +340,8 @@ ApplicationWindow {
     }
 
     Item {
-        x: 36
-        y: 240
+        x: 18
+        y: 260
         width: 600
         height: width
 
@@ -360,8 +360,8 @@ ApplicationWindow {
     }
 
     Item {
-        x: 1284
-        y: 240
+        x: 1302
+        y: 260
         width: 600
         height: width
 
@@ -427,10 +427,10 @@ ApplicationWindow {
 
     Rectangle {
         id: frame
-        x: 672
-        y: 264
-        width: 576
-        height: 552
+        x: 640
+        y: 180
+        width: 640
+        height: 720
 
         color: "black"
         border.width: 4
@@ -447,9 +447,8 @@ ApplicationWindow {
 
     Image {
         source: './images/agl_title_793x211.png'
-        //x: 772
         x: (parent.width - width) / 2
-        y: 898
+        y: 940
         width: 376
         height: 100
     }
