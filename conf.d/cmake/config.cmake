@@ -1,6 +1,6 @@
 ###########################################################################
-# Copyright 2015, 2016, 2017 IoT.bzh
-# Copyright 2018 Konsulko Group
+# Copyright 2015-2018 IoT.bzh
+# Copyright 2019 Konsulko Group
 #
 # author: Fulup Ar Foll <fulup@iot.bzh>
 # cluster-gauges: Scott Murray <scott.murray@konsulko.com>
@@ -23,7 +23,7 @@
 set(PROJECT_NAME cluster-gauges)
 set(PROJECT_PRETTY_NAME "Cluster Gauges Demo")
 set(PROJECT_DESCRIPTION "Cluster gauges demo application")
-set(PROJECT_URL "https://github.com/konsulko/cluster-gauges")
+set(PROJECT_URL "https://gerrit.automotivelinux.org/gerrit/apps/agl-cluster-demo-dashboard")
 set(PROJECT_VERSION "1.0")
 set(PROJECT_ICON "icon.png")
 set(PROJECT_AUTHOR "Scott Murray")
@@ -31,9 +31,9 @@ set(PROJECT_AUTHOR_MAIL "scott.murray@konsulko.com")
 set(PROJECT_LICENSE "APL2.0")
 set(PROJECT_LANGUAGES "CXX")
 
-# Where are stored default templates files from submodule or subtree app-templates in your project tree
+# Where are stored the project configuration files
 # relative to the root project directory
-set(PROJECT_APP_TEMPLATES_DIR "conf.d/app-templates")
+set(PROJECT_CMAKE_CONF_DIR "conf.d")
 
 # Where are stored your external libraries for your project. This is 3rd party library that you don't maintain
 # but used and must be built and linked.
@@ -44,10 +44,8 @@ set(PROJECT_APP_TEMPLATES_DIR "conf.d/app-templates")
 
 # Compilation Mode (DEBUG, RELEASE)
 # ----------------------------------
-#set(BUILD_TYPE "DEBUG")
-set(BUILD_TYPE "RELEASE")
-
-#set(USE_EFENCE 1)
+#set(CMAKE_BUILD_TYPE "DEBUG")
+set(USE_EFENCE 1)
 
 # Kernel selection if needed. You can choose between a
 # mandatory version to impose a minimal version.
@@ -74,14 +72,10 @@ set (PKG_REQUIRED_LIST
 	afb-daemon
 )
 
-# You can also consider to include libsystemd
-# -----------------------------------
-#list (APPEND PKG_REQUIRED_LIST libsystemd>=222)
-
 # Prefix path where will be installed the files
 # Default: /usr/local (need root permission to write in)
 # ------------------------------------------------------
-#set(INSTALL_PREFIX /opt/AGL CACHE PATH "INSTALL PREFIX PATH")
+#set(CMAKE_INSTALL_PREFIX $ENV{HOME}/opt)
 
 # Customize link option
 # -----------------------------
@@ -117,7 +111,7 @@ set (PKG_REQUIRED_LIST
 #set(DEBUG_COMPILE_OPTIONS
 # -g
 # -ggdb
-# -D_FORTIFY_SOURCE=2
+# -Wp,-U_FORTIFY_SOURCE
 # CACHE STRING "Compilation flags for DEBUG build type.")
 #set(CCOV_COMPILE_OPTIONS
 # -g
@@ -127,8 +121,12 @@ set (PKG_REQUIRED_LIST
 #set(RELEASE_COMPILE_OPTIONS
 # -g
 # -O2
-# -D_FORTIFY_SOURCE=2
 # CACHE STRING "Compilation flags for RELEASE build type.")
+
+# (BUG!!!) as PKG_CONFIG_PATH does not work [should be an env variable]
+# ---------------------------------------------------------------------
+set(CMAKE_PREFIX_PATH ${CMAKE_INSTALL_PREFIX}/lib64/pkgconfig ${CMAKE_INSTALL_PREFIX}/lib/pkgconfig)
+set(LD_LIBRARY_PATH ${CMAKE_INSTALL_PREFIX}/lib64 ${CMAKE_INSTALL_PREFIX}/lib)
 
 # Optional location for config.xml.in
 # -----------------------------------
@@ -187,7 +185,7 @@ set(AFB_REMPORT "1234" CACHE PATH "Default binder listening port")
 
 # Print a helper message when every thing is finished
 # ----------------------------------------------------
-#set(CLOSING_MESSAGE "Typical binding launch: cd ${CMAKE_BINARY_DIR}/package && afb-daemon --port=${AFB_REMPORT} --workdir=. --ldpaths=lib --roothttp=htdocs  --token=\"${AFB_TOKEN}\" --tracereq=common --verbose")
+set(CLOSING_MESSAGE "Typical binding launch: afb-daemon --port=${AFB_REMPORT} --workdir=${CMAKE_BINARY_DIR}/package --ldpaths=lib --roothttp=htdocs  --token=\"${AFB_TOKEN}\" --tracereq=common --verbose")
 set(PACKAGE_MESSAGE "Install widget file using in the target : afm-util install ${PROJECT_NAME}.wgt")
 
 # Optional schema validator about now only XML, LUA and JSON
@@ -199,5 +197,8 @@ set(PACKAGE_MESSAGE "Install widget file using in the target : afm-util install 
 
 # This include is mandatory and MUST happens at the end
 # of this file, else you expose you to unexpected behavior
+#
+# This CMake module could be found at the following url:
+# https://gerrit.automotivelinux.org/gerrit/#/admin/projects/src/cmake-apps-module
 # -----------------------------------------------------------
-include(${PROJECT_APP_TEMPLATES_DIR}/cmake/common.cmake)
+include(CMakeAfbTemplates)

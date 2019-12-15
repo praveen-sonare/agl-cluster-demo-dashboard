@@ -1,5 +1,5 @@
 ###########################################################################
-# Copyright 2018 Konsulko Group
+# Copyright 2018,2019 Konsulko Group
 #
 # Author: Scott Murray <scott.murray@konsulko.com>
 #
@@ -18,7 +18,10 @@
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(OE_QMAKE_PATH_EXTERNAL_HOST_BINS $ENV{OE_QMAKE_PATH_HOST_BINS})
 
 find_package(Qt5 COMPONENTS Core Gui QuickControls2 WebSockets QuickWidgets REQUIRED)
 find_package(PkgConfig REQUIRED)
