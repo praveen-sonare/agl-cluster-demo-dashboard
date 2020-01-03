@@ -1,7 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
-** Copyright (C) 2018 Konsulko Group
+** Copyright (C) 2018, 2019 Konsulko Group
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -54,7 +54,7 @@ Item {
     id: valueSource
     property real kph: 0
     property bool mphDisplay: true
-    property real speedScaling: mphDisplay == true ? 0.621 : 1.0
+    property real speedScaling: mphDisplay == true ? 0.621504 : 1.0
     property real rpm: 1
     property real fuel: 0.85
     property string gear: {
@@ -87,13 +87,61 @@ Item {
     property int turnSignal: -1
     property bool startUp: false
     property real temperature: 0.6
+    property bool cruiseEnabled: false
+    property bool cruiseSet: false
+    property bool laneDepartureWarnEnabled: false
+    property bool displayNumericSpeeds: true
 
     function randomDirection() {
         return Math.random() > 0.5 ? Qt.LeftArrow : Qt.RightArrow;
     }
 
+    Connections {
+        target: SignalComposer
+
+        onSignalEvent: {
+            if (uid === "event.vehicle.speed") {
+                var speed_tmp = parseFloat(value)
+                if(units == "mph") {
+                    speed_tmp *= 1.609
+                }
+	        if(!runAnimation) {
+                    valueSource.kph = speed_tmp
+                }
+            }
+            else if (uid === "event.engine.speed") {
+	        if(!runAnimation) {
+                    valueSource.rpm = parseFloat(value) / 1000
+                }
+            }
+            else if (uid === "event.cruise.enable" && value === "true") {
+                if(valueSource.cruiseEnabled) {
+                    valueSource.cruiseEnabled = false
+                    valueSource.cruiseSet = false
+                } else {
+                    valueSource.cruiseEnabled = true
+                }
+            }
+            else if ((uid === "event.cruise.set" || uid === "event.cruise.resume") &&
+                     value === "true") {
+                if(valueSource.cruiseEnabled) {
+                    valueSource.cruiseSet = true
+                }
+            }
+            else if (uid === "event.cruise.cancel" && value === "true") {
+                valueSource.cruiseSet = false
+            }
+            else if (uid === "event.lane_departure_warning.enable" && value === "true") {
+                valueSource.laneDepartureWarnEnabled = !valueSource.laneDepartureWarnEnabled
+            }
+            else if (uid === "event.info" && value === "true") {
+                valueSource.displayNumericSpeeds = !valueSource.displayNumericSpeeds
+            }
+        }
+    }
+
     SequentialAnimation {
-        running: true
+        running: runAnimation
         loops: 1
 
         // We want a small pause at the beginning, but we only want it to happen once.

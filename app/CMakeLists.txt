@@ -23,7 +23,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(OE_QMAKE_PATH_EXTERNAL_HOST_BINS $ENV{OE_QMAKE_PATH_HOST_BINS})
 
-find_package(Qt5 COMPONENTS Core Gui QuickControls2 WebSockets QuickWidgets REQUIRED)
+find_package(Qt5 COMPONENTS Core Gui QuickControls2 QuickWidgets REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 qt5_add_resources(RESOURCES cluster-gauges.qrc images/images.qrc)
@@ -36,11 +36,18 @@ add_executable(${TARGET_NAME}
 )
 
 pkg_check_modules(QLIBWINMGR REQUIRED qlibwindowmanager)
+pkg_check_modules(QTAPPFW REQUIRED qtappfw)
+pkg_check_modules(GLIB REQUIRED glib-2.0)
+
+include_directories(
+	${QTAPPFW_INCLUDE_DIRS}
+	${GLIB_INCLUDE_DIRS}
+)
 
 set_target_properties(${TARGET_NAME} PROPERTIES
 	LABELS "EXECUTABLE"
 	PREFIX ""
-	COMPILE_FLAGS "${QLIBWINMGR_FLAGS} ${EXTRAS_CFLAGS} -DFOR_AFB_BINDING"
+	COMPILE_FLAGS "${QLIBWINMGR_FLAGS} ${QTAPPFW_FLAGS} ${GLIB_FLAGS} ${EXTRAS_CFLAGS} -DFOR_AFB_BINDING"
 	LINK_FLAGS "${BINDINGS_LINK_FLAG}"
 	LINK_LIBRARIES "${EXTRAS_LIBRARIES}"
 	OUTPUT_NAME "${TARGET_NAME}"
@@ -50,4 +57,6 @@ target_link_libraries(${TARGET_NAME}
 	Qt5::QuickControls2
 	Qt5::QuickWidgets
 	${QLIBWINMGR_LIBRARIES}
+	${QTAPPFW_LIBRARIES}
+	${GLIB_LDFLAGS}
 )

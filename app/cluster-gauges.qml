@@ -1,7 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
-** Copyright (C) 2018 Konsulko Group
+** Copyright (C) 2018, 2019 Konsulko Group
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the examples of the Qt Toolkit.
@@ -81,7 +81,7 @@ ApplicationWindow {
         id: statusFrame
         x: (parent.width - width) / 2
         y: 40
-        width: 1152
+        width: 1280
         height: 96
         radius: height / 5
 
@@ -92,13 +92,13 @@ ApplicationWindow {
         Row {
             width: parent.width
             height: parent.height * 0.75
-            spacing: (parent.width - (12 * parent.height * 0.75)) / 13
+            spacing: (parent.width - (14 * parent.height * 0.75)) / 15
 
             anchors.fill: parent
             anchors.topMargin: (parent.height - height) /2
             anchors.bottomMargin: (parent.height - height) /2
-            anchors.leftMargin: (parent.width - (12 * parent.height * 0.75)) / 13
-            anchors.rightMargin: (parent.width - (12 * parent.height * 0.75)) / 13
+            anchors.leftMargin: (parent.width - (14 * parent.height * 0.75)) / 15
+            anchors.rightMargin: (parent.width - (14 * parent.height * 0.75)) / 15
 
             Rectangle {
                 width: height
@@ -169,6 +169,25 @@ ApplicationWindow {
                 border.color: "grey"
 
                 Image {
+                    source: valueSource.startUp ? './images/AGL_Icons_Battery_red.svg' : './images/AGL_Icons_Battery.svg'
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: height
+                    height: parent.height * 0.75
+                    fillMode: Image.PreserveAspectFit
+                }
+            }
+
+            Rectangle {
+                width: height
+                height: parent.height
+                radius: height / 5
+
+                color: "black"
+                border.width: 2
+                border.color: "grey"
+
+                Image {
                     source: valueSource.startUp ? './images/AGL_Icons_ABS_red.svg' : './images/AGL_Icons_ABS.svg'
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -188,7 +207,7 @@ ApplicationWindow {
                 border.color: "grey"
 
                 Image {
-                    source: valueSource.startUp ? './images/AGL_Icons_Battery_red.svg' : './images/AGL_Icons_Battery.svg'
+                    source: valueSource.startUp ? './images/AGL_Icons_ParkingBrake_red.svg' : './images/AGL_Icons_ParkingBrake.svg'
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: height
@@ -307,7 +326,26 @@ ApplicationWindow {
                 border.color: "grey"
 
                 Image {
-                    source: valueSource.startUp ? './images/AGL_Icons_ParkingBrake_red.svg' : './images/AGL_Icons_ParkingBrake.svg'
+                    source: valueSource.cruiseEnabled ? (valueSource.cruiseSet  ? './images/AGL_Icons_CruiseControl_green.svg' : './images/AGL_Icons_CruiseControl_yellow.svg') : './images/AGL_Icons_CruiseControl.svg'
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: height
+                    height: parent.height * 0.75
+                    fillMode: Image.PreserveAspectFit
+                }
+            }
+
+            Rectangle {
+                width: height
+                height: parent.height
+                radius: height / 5
+
+                color: "black"
+                border.width: 2
+                border.color: "grey"
+
+                Image {
+                    source: valueSource.laneDepartureWarnEnabled ? './images/AGL_Icons_LaneDeparture_green.svg' : './images/AGL_Icons_LaneDeparture.svg'
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: height

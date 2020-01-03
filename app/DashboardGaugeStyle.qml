@@ -127,6 +127,7 @@ CircularGaugeStyle {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.verticalCenter
             anchors.topMargin: toPixels(0.1)
+            visible: valueSource.displayNumericSpeeds === true
 
             readonly property int kphInt: control.value
         }
