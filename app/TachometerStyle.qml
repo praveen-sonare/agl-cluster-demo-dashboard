@@ -105,6 +105,7 @@ DashboardGaugeStyle {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.verticalCenter
             anchors.topMargin: 20
+            visible: valueSource.displayNumericSpeeds === true
 
             readonly property int rpmInt: valueSource.rpm
         }

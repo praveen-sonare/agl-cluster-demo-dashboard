@@ -10,9 +10,17 @@
         <file>AGL_Icons_Battery.svg</file>
         <file>AGL_Icons_Battery_red.svg</file>
         <file>AGL_Icons_Battery_yellow.svg</file>
+        <file>AGL_Icons_CruiseControl.svg</file>
+        <file>AGL_Icons_CruiseControl_green.svg</file>
+        <file>AGL_Icons_CruiseControl_white.svg</file>
+        <file>AGL_Icons_CruiseControl_yellow.svg</file>
         <file>AGL_Icons_Engine.svg</file>
         <file>AGL_Icons_Engine_red.svg</file>
         <file>AGL_Icons_Engine_yellow.svg</file>
+        <file>AGL_Icons_LaneDeparture.svg</file>
+        <file>AGL_Icons_LaneDeparture_green.svg</file>
+        <file>AGL_Icons_LaneDeparture_yellow.svg</file>
+        <file>AGL_Icons_LaneDeparture_white.svg</file>
         <file>AGL_Icons_Lights.svg</file>
         <file>AGL_Icons_Lights_red.svg</file>
         <file>AGL_Icons_Lights_yellow.svg</file>

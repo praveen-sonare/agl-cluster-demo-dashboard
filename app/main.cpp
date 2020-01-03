@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2016 The Qt Company Ltd.
- * Copyright (C) 2018 Konsulko Group
+ * Copyright (C) 2018, 2019 Konsulko Group
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,45 @@
 #include <QtQml/qqml.h>
 #include <QQuickWindow>
 #include <QtQuickControls2/QQuickStyle>
+#include <glib.h>
 
 #include <qlibwindowmanager.h>
+#include <signalcomposer.h>
+
+// Global indicating whether canned animation should run
+bool runAnimation = true;
+
+void read_config(void)
+{
+	GKeyFile* conf_file;
+	gboolean value;
+
+	// Load settings from configuration file if it exists
+	conf_file = g_key_file_new();
+	if(conf_file &&
+	   g_key_file_load_from_dirs(conf_file,
+				     "AGL.conf",
+				     (const gchar**) g_get_system_config_dirs(),
+				     NULL,
+				     G_KEY_FILE_KEEP_COMMENTS,
+				     NULL) == TRUE) {
+		GError *err = NULL;
+		value = g_key_file_get_boolean(conf_file,
+					       "dashboard",
+					       "animation",
+					       &err);
+		if(value) {
+			runAnimation = true;
+		} else {
+			if(err == NULL) {
+				runAnimation = false;
+			} else {
+				qWarning("Invalid value for \"animation\" key!");
+			}
+		}
+	}
+
+}
 
 int main(int argc, char *argv[])
 {
@@ -77,6 +114,10 @@ int main(int argc, char *argv[])
             fprintf(stderr, "Surface got syncDraw!\n");
             qwm->endDraw(myname);
         });
+
+        context->setContextProperty("SignalComposer", new SignalComposer(bindingAddress, context));
+        read_config();
+        context->setContextProperty("runAnimation", runAnimation);
 
         engine.load(QUrl(QStringLiteral("qrc:/cluster-gauges.qml")));
 
