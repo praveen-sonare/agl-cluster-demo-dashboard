@@ -36,7 +36,7 @@ add_executable(${TARGET_NAME}
 )
 
 pkg_check_modules(QLIBWINMGR REQUIRED qlibwindowmanager)
-pkg_check_modules(QTAPPFW REQUIRED qtappfw)
+pkg_check_modules(QTAPPFW REQUIRED qtappfw-signal-composer)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 
 include_directories(
