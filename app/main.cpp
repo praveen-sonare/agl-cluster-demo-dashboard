@@ -16,21 +16,84 @@
  */
 
 #include <QtCore/QDebug>
+#include <QGuiApplication>
 #include <QtCore/QCommandLineParser>
 #include <QtCore/QUrlQuery>
 #include <QtGui/QGuiApplication>
 #include <QtQml/QQmlApplicationEngine>
 #include <QtQml/QQmlContext>
+#include <QtQml/QQmlComponent>
 #include <QtQml/qqml.h>
 #include <QQuickWindow>
 #include <QtQuickControls2/QQuickStyle>
+#include <qpa/qplatformnativeinterface.h>
+#include <QTimer>
 #include <glib.h>
+#include <QDebug>
+#include <QScreen>
 
-#include <qlibwindowmanager.h>
 #include <signalcomposer.h>
+#include <wayland-client.h>
+#include "agl-shell-client-protocol.h"
 
 // Global indicating whether canned animation should run
 bool runAnimation = true;
+
+static void
+global_add(void *data, struct wl_registry *reg, uint32_t name,
+	   const char *interface, uint32_t version)
+{
+	struct agl_shell **shell = static_cast<struct agl_shell **>(data);
+	if (strcmp(interface, agl_shell_interface.name) == 0) {
+		*shell = static_cast<struct agl_shell *>(wl_registry_bind(reg,
+					name, &agl_shell_interface, version)
+		);
+	}
+}
+
+static void
+global_remove(void *data, struct wl_registry *reg, uint32_t id)
+{
+	(void) data;
+	(void) reg;
+	(void) id;
+}
+
+static const struct wl_registry_listener registry_listener = {
+	global_add,
+	global_remove,
+};
+
+static struct agl_shell *
+register_agl_shell(QPlatformNativeInterface *native)
+{
+	struct wl_display *wl;
+	struct wl_registry *registry;
+	struct agl_shell *shell = nullptr;
+
+	wl = static_cast<struct wl_display *>(native->nativeResourceForIntegration("display"));
+	registry = wl_display_get_registry(wl);
+
+	wl_registry_add_listener(registry, &registry_listener, &shell);
+	wl_display_roundtrip(wl);
+	wl_registry_destroy(registry);
+
+	return shell;
+}
+
+static struct wl_surface *
+getWlSurface(QPlatformNativeInterface *native, QWindow *window)
+{
+	void *surf = native->nativeResourceForWindow("surface", window);
+	return static_cast<struct ::wl_surface *>(surf);
+}
+
+static struct wl_output *
+getWlOutput(QPlatformNativeInterface *native, QScreen *screen)
+{
+	void *output = native->nativeResourceForScreen("output", screen);
+	return static_cast<struct ::wl_output*>(output);
+}
 
 void read_config(void)
 {
@@ -64,69 +127,98 @@ void read_config(void)
 
 }
 
+static struct wl_surface *
+create_component(QPlatformNativeInterface *native, QQmlComponent *comp,
+		QScreen *screen, QObject **qobj)
+{
+	QObject *obj = comp->create();
+	//QObject *screen_obj = new QScreen(screen);
+	obj->setParent(screen);
+
+	QWindow *win = qobject_cast<QWindow *>(obj);
+	*qobj = obj;
+
+	return getWlSurface(native, win);
+}
+
+
 int main(int argc, char *argv[])
 {
-    // Slight hack, using the homescreen role greatly simplifies things wrt
-    // the windowmanager
-    QString myname = QString("homescreen");
+	QString myname = QString("cluster-gauges");
+	struct agl_shell *agl_shell;
+	struct wl_output *output;
 
-    QGuiApplication app(argc, argv);
+	QObject *qobj_bg;
+	QScreen *screen;
 
-    QCommandLineParser parser;
-    parser.addPositionalArgument("port", app.translate("main", "port for binding"));
-    parser.addPositionalArgument("secret", app.translate("main", "secret for binding"));
-    parser.addHelpOption();
-    parser.addVersionOption();
-    parser.process(app);
-    QStringList positionalArguments = parser.positionalArguments();
+	QGuiApplication app(argc, argv);
+	app.setDesktopFileName(myname);
+	QPlatformNativeInterface *native = qApp->platformNativeInterface();
 
-    QQmlApplicationEngine engine;
+	agl_shell = register_agl_shell(native);
+	if (!agl_shell) {
+		exit(EXIT_FAILURE);
+	}
 
-    if (positionalArguments.length() == 2) {
-        int port = positionalArguments.takeFirst().toInt();
-        QString secret = positionalArguments.takeFirst();
-        QUrl bindingAddress;
-        bindingAddress.setScheme(QStringLiteral("ws"));
-        bindingAddress.setHost(QStringLiteral("localhost"));
-        bindingAddress.setPort(port);
-        bindingAddress.setPath(QStringLiteral("/api"));
-        QUrlQuery query;
-        query.addQueryItem(QStringLiteral("token"), secret);
-        bindingAddress.setQuery(query);
-        QQmlContext *context = engine.rootContext();
-        context->setContextProperty(QStringLiteral("bindingAddress"), bindingAddress);
+	std::shared_ptr<struct agl_shell> shell{agl_shell, agl_shell_destroy};
 
-        std::string token = secret.toStdString();
-        QLibWindowmanager* qwm = new QLibWindowmanager();
+	screen = qApp->primaryScreen();
+	output = getWlOutput(native, screen);
 
-        // WindowManager
-        if(qwm->init(port, secret) != 0){
-            exit(EXIT_FAILURE);
-        }
+	QCommandLineParser parser;
+	parser.addPositionalArgument("port", app.translate("main", "port for binding"));
+	parser.addPositionalArgument("secret", app.translate("main", "secret for binding"));
+	parser.addHelpOption();
+	parser.addVersionOption();
+	parser.process(app);
 
-        // Request a surface as described in layers.json windowmanager’s file
-        if (qwm->requestSurface(myname) != 0) {
-            exit(EXIT_FAILURE);
-        }
+	QStringList positionalArguments = parser.positionalArguments();
 
-        // Create an event callback against an event type. Here a lambda is called when SyncDraw event occurs
-        qwm->set_event_handler(QLibWindowmanager::Event_SyncDraw, [qwm, myname](json_object*) {
-            fprintf(stderr, "Surface got syncDraw!\n");
-            qwm->endDraw(myname);
-        });
+	QQmlApplicationEngine engine;
+	QQmlContext *context = engine.rootContext();
 
-        context->setContextProperty("SignalComposer", new SignalComposer(bindingAddress, context));
-        read_config();
-        context->setContextProperty("runAnimation", runAnimation);
+	if (positionalArguments.length() == 2) {
+		int port = positionalArguments.takeFirst().toInt();
+		QString secret = positionalArguments.takeFirst();
 
-        engine.load(QUrl(QStringLiteral("qrc:/cluster-gauges.qml")));
+		QUrl bindingAddress;
+		QUrlQuery query;
 
-        // Find the instantiated model QObject and connect the signals/slots
-        QList<QObject *> mobjs = engine.rootObjects();
+		struct wl_surface *bg;
 
-        QQuickWindow *window = qobject_cast<QQuickWindow *>(mobjs.first());
-        QObject::connect(window, SIGNAL(frameSwapped()), qwm, SLOT(slotActivateSurface()));
-    }
+		bindingAddress.setScheme(QStringLiteral("ws"));
+		bindingAddress.setHost(QStringLiteral("localhost"));
+		bindingAddress.setPort(port);
+		bindingAddress.setPath(QStringLiteral("/api"));
 
-    return app.exec();
+		query.addQueryItem(QStringLiteral("token"), secret);
+		bindingAddress.setQuery(query);
+
+		read_config();
+
+		context->setContextProperty(QStringLiteral("bindingAddress"),
+					    bindingAddress);
+
+		context->setContextProperty("SignalComposer",
+					    new SignalComposer(bindingAddress,
+							       context));
+		context->setContextProperty("runAnimation", runAnimation);
+
+		QQmlComponent bg_comp(&engine, QUrl("qrc:/cluster-gauges.qml"));
+		qDebug() << bg_comp.errors();
+
+		bg = create_component(native, &bg_comp, screen, &qobj_bg);
+
+		// set the surface as the background
+		agl_shell_set_background(agl_shell, bg, output);
+
+		// instruct the compositor it can display after Qt has a chance
+		// to load everything
+		QTimer::singleShot(500, [agl_shell](){
+			qDebug() << "agl_shell ready!";
+			agl_shell_ready(agl_shell);
+		});
+	}
+
+	return app.exec();
 }

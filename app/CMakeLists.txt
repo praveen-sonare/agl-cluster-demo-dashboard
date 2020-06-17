@@ -24,22 +24,51 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(OE_QMAKE_PATH_EXTERNAL_HOST_BINS $ENV{OE_QMAKE_PATH_HOST_BINS})
 
 find_package(Qt5 COMPONENTS Core Gui QuickControls2 QuickWidgets REQUIRED)
+find_package(Qt5Gui ${QT_MIN_VERSION} CONFIG REQUIRED Private)
 find_package(PkgConfig REQUIRED)
+find_program(WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
 
 qt5_add_resources(RESOURCES cluster-gauges.qrc images/images.qrc)
 
 PROJECT_TARGET_ADD(cluster-gauges)
 
+add_custom_command(
+	OUTPUT  agl-shell-client-protocol.h
+	COMMAND ${WAYLAND_SCANNER_EXECUTABLE} client-header
+	< ${CMAKE_SOURCE_DIR}/app/protocol/agl-shell.xml
+	> ${CMAKE_SOURCE_DIR}/app/agl-shell-client-protocol.h
+	DEPENDS ${CMAKE_SOURCE_DIR}/app/protocol/agl-shell.xml
+)
+
+add_custom_command(
+	OUTPUT  ${CMAKE_BINARY_DIR}/app/agl-shell-client-protocol.h
+	COMMAND ${WAYLAND_SCANNER_EXECUTABLE} client-header
+	< ${CMAKE_SOURCE_DIR}/app/protocol/agl-shell.xml
+	> ${CMAKE_SOURCE_DIR}/app/agl-shell-client-protocol.h
+	DEPENDS ${CMAKE_SOURCE_DIR}/app/protocol/agl-shell.xml
+)
+
+add_custom_command(
+	OUTPUT  agl-shell-protocol.c
+	COMMAND ${WAYLAND_SCANNER_EXECUTABLE} code
+	< ${CMAKE_SOURCE_DIR}/app/protocol/agl-shell.xml
+	> ${CMAKE_BINARY_DIR}/app/agl-shell-protocol.c
+	DEPENDS ${CMAKE_SOURCE_DIR}/app/protocol/agl-shell.xml
+)
+
 add_executable(${TARGET_NAME}
 	main.cpp
+	agl-shell-protocol.c
+	agl-shell-client-protocol.h
 	${RESOURCES}
 )
 
-pkg_check_modules(QLIBWINMGR REQUIRED qlibwindowmanager)
 pkg_check_modules(QTAPPFW REQUIRED qtappfw-signal-composer)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
+pkg_check_modules(WAYLAND_CLIENT REQUIRED wayland-client)
 
 include_directories(
+	include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
 	${QTAPPFW_INCLUDE_DIRS}
 	${GLIB_INCLUDE_DIRS}
 )
@@ -47,7 +76,7 @@ include_directories(
 set_target_properties(${TARGET_NAME} PROPERTIES
 	LABELS "EXECUTABLE"
 	PREFIX ""
-	COMPILE_FLAGS "${QLIBWINMGR_FLAGS} ${QTAPPFW_FLAGS} ${GLIB_FLAGS} ${EXTRAS_CFLAGS} -DFOR_AFB_BINDING"
+	COMPILE_FLAGS "${QTAPPFW_FLAGS} ${GLIB_FLAGS} ${EXTRAS_CFLAGS} -DFOR_AFB_BINDING"
 	LINK_FLAGS "${BINDINGS_LINK_FLAG}"
 	LINK_LIBRARIES "${EXTRAS_LIBRARIES}"
 	OUTPUT_NAME "${TARGET_NAME}"
@@ -56,7 +85,7 @@ set_target_properties(${TARGET_NAME} PROPERTIES
 target_link_libraries(${TARGET_NAME}
 	Qt5::QuickControls2
 	Qt5::QuickWidgets
-	${QLIBWINMGR_LIBRARIES}
 	${QTAPPFW_LIBRARIES}
 	${GLIB_LDFLAGS}
+	${WAYLAND_CLIENT_LIBRARIES}
 )
