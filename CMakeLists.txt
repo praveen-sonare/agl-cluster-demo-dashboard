@@ -1,5 +1,6 @@
 ###########################################################################
-# Copyright 2015, 2016, 2017 IoT.bzh
+# Copyright 2015,2016,2017 IoT.bzh
+# Copyright 2022 Konsulko Group
 #
 # Author: romain Forlot <romain.forlot@iot.bzh>
 #
@@ -18,4 +19,4 @@
 
 CMAKE_MINIMUM_REQUIRED(VERSION 3.3)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/conf.d/cmake/config.cmake)
+add_subdirectory(app)

@@ -32,7 +32,6 @@
 #include <QDebug>
 #include <QScreen>
 
-#include <signalcomposer.h>
 #include <wayland-client.h>
 #include "agl-shell-client-protocol.h"
 
@@ -144,7 +143,7 @@ create_component(QPlatformNativeInterface *native, QQmlComponent *comp,
 
 int main(int argc, char *argv[])
 {
-	QString myname = QString("cluster-gauges");
+	QString myname = QString("cluster-dashboard");
 	struct agl_shell *agl_shell;
 	struct wl_output *output;
 
@@ -165,60 +164,25 @@ int main(int argc, char *argv[])
 	screen = qApp->primaryScreen();
 	output = getWlOutput(native, screen);
 
-	QCommandLineParser parser;
-	parser.addPositionalArgument("port", app.translate("main", "port for binding"));
-	parser.addPositionalArgument("secret", app.translate("main", "secret for binding"));
-	parser.addHelpOption();
-	parser.addVersionOption();
-	parser.process(app);
-
-	QStringList positionalArguments = parser.positionalArguments();
+	read_config();
 
 	QQmlApplicationEngine engine;
 	QQmlContext *context = engine.rootContext();
+	context->setContextProperty("runAnimation", runAnimation);
 
-	if (positionalArguments.length() == 2) {
-		int port = positionalArguments.takeFirst().toInt();
-		QString secret = positionalArguments.takeFirst();
+	QQmlComponent bg_comp(&engine, QUrl("qrc:/cluster-gauges.qml"));
+	qDebug() << bg_comp.errors();
+	struct wl_surface *bg = create_component(native, &bg_comp, screen, &qobj_bg);
 
-		QUrl bindingAddress;
-		QUrlQuery query;
+	// set the surface as the background
+	agl_shell_set_background(agl_shell, bg, output);
 
-		struct wl_surface *bg;
-
-		bindingAddress.setScheme(QStringLiteral("ws"));
-		bindingAddress.setHost(QStringLiteral("localhost"));
-		bindingAddress.setPort(port);
-		bindingAddress.setPath(QStringLiteral("/api"));
-
-		query.addQueryItem(QStringLiteral("token"), secret);
-		bindingAddress.setQuery(query);
-
-		read_config();
-
-		context->setContextProperty(QStringLiteral("bindingAddress"),
-					    bindingAddress);
-
-		context->setContextProperty("SignalComposer",
-					    new SignalComposer(bindingAddress,
-							       context));
-		context->setContextProperty("runAnimation", runAnimation);
-
-		QQmlComponent bg_comp(&engine, QUrl("qrc:/cluster-gauges.qml"));
-		qDebug() << bg_comp.errors();
-
-		bg = create_component(native, &bg_comp, screen, &qobj_bg);
-
-		// set the surface as the background
-		agl_shell_set_background(agl_shell, bg, output);
-
-		// instruct the compositor it can display after Qt has a chance
-		// to load everything
-		QTimer::singleShot(500, [agl_shell](){
-			qDebug() << "agl_shell ready!";
-			agl_shell_ready(agl_shell);
-		});
-	}
+	// instruct the compositor it can display after Qt has a chance
+	// to load everything
+	QTimer::singleShot(500, [agl_shell](){
+		qDebug() << "agl_shell ready!";
+		agl_shell_ready(agl_shell);
+	});
 
 	return app.exec();
 }

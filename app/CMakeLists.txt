@@ -1,5 +1,5 @@
 ###########################################################################
-# Copyright 2018,2019 Konsulko Group
+# Copyright 2018,2019,2022 Konsulko Group
 #
 # Author: Scott Murray <scott.murray@konsulko.com>
 #
@@ -16,12 +16,18 @@
 # limitations under the License.
 ###########################################################################
 
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+project(cluster-dashboard VERSION 2.0.0 LANGUAGES CXX)
+
+if(CMAKE_VERSION VERSION_LESS "3.7.0")
+    set(CMAKE_INCLUDE_CURRENT_DIR ON)
+endif()
+set(OE_QMAKE_PATH_EXTERNAL_HOST_BINS $ENV{OE_QMAKE_PATH_HOST_BINS})
+
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(OE_QMAKE_PATH_EXTERNAL_HOST_BINS $ENV{OE_QMAKE_PATH_HOST_BINS})
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
 find_package(Qt5 COMPONENTS Core Gui QuickControls2 QuickWidgets REQUIRED)
 find_package(Qt5Gui ${QT_MIN_VERSION} CONFIG REQUIRED Private)
@@ -29,8 +35,6 @@ find_package(PkgConfig REQUIRED)
 find_program(WAYLAND_SCANNER_EXECUTABLE NAMES wayland-scanner)
 
 qt5_add_resources(RESOURCES cluster-gauges.qrc images/images.qrc)
-
-PROJECT_TARGET_ADD(cluster-gauges)
 
 add_custom_command(
 	OUTPUT  agl-shell-client-protocol.h
@@ -56,14 +60,13 @@ add_custom_command(
 	DEPENDS ${CMAKE_SOURCE_DIR}/app/protocol/agl-shell.xml
 )
 
-add_executable(${TARGET_NAME}
+add_executable(${PROJECT_NAME}
 	main.cpp
 	agl-shell-protocol.c
 	agl-shell-client-protocol.h
 	${RESOURCES}
 )
 
-pkg_check_modules(QTAPPFW REQUIRED qtappfw-signal-composer)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(WAYLAND_CLIENT REQUIRED wayland-client)
 
@@ -73,19 +76,12 @@ include_directories(
 	${GLIB_INCLUDE_DIRS}
 )
 
-set_target_properties(${TARGET_NAME} PROPERTIES
-	LABELS "EXECUTABLE"
-	PREFIX ""
-	COMPILE_FLAGS "${QTAPPFW_FLAGS} ${GLIB_FLAGS} ${EXTRAS_CFLAGS} -DFOR_AFB_BINDING"
-	LINK_FLAGS "${BINDINGS_LINK_FLAG}"
-	LINK_LIBRARIES "${EXTRAS_LIBRARIES}"
-	OUTPUT_NAME "${TARGET_NAME}"
-)
-
-target_link_libraries(${TARGET_NAME}
+target_link_libraries(${PROJECT_NAME}
 	Qt5::QuickControls2
 	Qt5::QuickWidgets
 	${QTAPPFW_LIBRARIES}
 	${GLIB_LDFLAGS}
 	${WAYLAND_CLIENT_LIBRARIES}
 )
+
+install(TARGETS ${PROJECT_NAME} DESTINATION bin)
