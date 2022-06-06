@@ -142,6 +142,18 @@ create_component(QPlatformNativeInterface *native, QQmlComponent *comp,
 	return getWlSurface(native, win);
 }
 
+static QScreen *find_screen(const char *screen_name)
+{
+	QList<QScreen *> screens = qApp->screens();
+	QString name(screen_name);
+
+	for (QScreen *screen : screens) {
+		if (name == screen->name())
+			return screen;
+	}
+
+	return nullptr;
+}
 
 int main(int argc, char *argv[])
 {
@@ -163,7 +175,11 @@ int main(int argc, char *argv[])
 
 	std::shared_ptr<struct agl_shell> shell{agl_shell, agl_shell_destroy};
 
-	screen = qApp->primaryScreen();
+	const char *screen_name = getenv("DASHBOARD_START_SCREEN");
+	if (screen_name)
+		screen = find_screen(screen_name);
+	else
+		screen = qApp->primaryScreen();
 	output = getWlOutput(native, screen);
 
 	read_config();
