@@ -53,7 +53,7 @@ import QtQuick 2.2
 Item {
     id: valueSource
     property real kph: 0
-    property bool mphDisplay: true
+    property bool mphDisplay: false
     property real speedScaling: mphDisplay == true ? 0.621504 : 1.0
     property real rpm: 1
     property real fuel: 0.85
@@ -96,46 +96,78 @@ Item {
         return Math.random() > 0.5 ? Qt.LeftArrow : Qt.RightArrow;
     }
 
-    Connections {
-        target: SignalComposer
+    Component.onCompleted : {
+        if(!runAnimation) {
+            VehicleSignals.connect()
+        }
+    }
 
-        onSignalEvent: {
-            if (uid === "event.vehicle.speed") {
-                var speed_tmp = parseFloat(value)
-                if(units == "mph") {
-                    speed_tmp *= 1.609
-                }
-	        if(!runAnimation) {
-                    valueSource.kph = speed_tmp
+    Connections {
+        target: VehicleSignals
+
+        onConnected: {
+	    VehicleSignals.authorize()
+        }
+
+        onAuthorized: {
+	    VehicleSignals.subscribe("Vehicle.Speed")
+	    VehicleSignals.subscribe("Vehicle.Powertrain.CombustionEngine.Engine.Speed")
+	    VehicleSignals.subscribe("Vehicle.ADAS.CruiseControl.IsActive")
+	    VehicleSignals.subscribe("Vehicle.ADAS.CruiseControl.IsSet")
+	    VehicleSignals.subscribe("Vehicle.ADAS.LaneDepartureDetection.IsActive")
+	    VehicleSignals.subscribe("Vehicle.Cabin.Infotainment.Cluster.Mode")
+	    VehicleSignals.get("Vehicle.Cabin.Infotainment.HMI.DistanceUnit")
+	    VehicleSignals.subscribe("Vehicle.Cabin.Infotainment.HMI.DistanceUnit")
+	}
+
+        onGetSuccessResponse: {
+            //console.log("response path = " + path + ", value = " + value)
+            if (path === "Vehicle.Cabin.Infotainment.HMI.DistanceUnit") {
+                if (value === "km") {
+                    valueSource.mphDisplay = false
+                } else if (value === "mi") {
+                    valueSource.mphDisplay = true
                 }
             }
-            else if (uid === "event.engine.speed") {
+        }
+
+        onSignalNotification: {
+            //console.log("signal path = " + path + ", value = " + value)
+            if (path === "Vehicle.Speed") {
+                // units are always km/h
+                // Checking Vehicle.Cabin.Infotainment.HMI.DistanceUnit for the
+                // display unit would likely be a worthwhile enhancement.
+	        if(!runAnimation) {
+                    valueSource.kph = parseFloat(value)
+                }
+            } else if (path === "Vehicle.Powertrain.CombustionEngine.Engine.Speed") {
 	        if(!runAnimation) {
                     valueSource.rpm = parseFloat(value) / 1000
                 }
-            }
-            else if (uid === "event.cruise.enable" && value === "true") {
+            } else if (path === "Vehicle.ADAS.CruiseControl.IsActive" && value === "true") {
                 if(valueSource.cruiseEnabled) {
                     valueSource.cruiseEnabled = false
                     valueSource.cruiseSet = false
                 } else {
                     valueSource.cruiseEnabled = true
                 }
-            }
-            else if ((uid === "event.cruise.set" || uid === "event.cruise.resume") &&
-                     value === "true") {
-                if(valueSource.cruiseEnabled) {
-                    valueSource.cruiseSet = true
+            } else if (path === "Vehicle.ADAS.CruiseControl.IsSet") {
+                if (value === "true") {
+                    if(valueSource.cruiseEnabled)
+                        valueSource.cruiseSet = true
+                } else {
+                    valueSource.cruiseSet = false
                 }
-            }
-            else if (uid === "event.cruise.cancel" && value === "true") {
-                valueSource.cruiseSet = false
-            }
-            else if (uid === "event.lane_departure_warning.enable" && value === "true") {
+            } else if (path === "Vehicle.ADAS.LaneDepartureDetection.IsActive" && value === "true") {
                 valueSource.laneDepartureWarnEnabled = !valueSource.laneDepartureWarnEnabled
-            }
-            else if (uid === "event.info" && value === "true") {
+            } else if (path === "Vehicle.Cabin.Infotainment.Cluster.Mode" && value === "true") {
                 valueSource.displayNumericSpeeds = !valueSource.displayNumericSpeeds
+            } else if (path === "Vehicle.Cabin.Infotainment.HMI.DistanceUnit") {
+                if (value === "km") {
+                    valueSource.mphDisplay = false
+                } else if (value === "mi") {
+                    valueSource.mphDisplay = true
+                }
             }
         }
     }

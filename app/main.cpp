@@ -35,6 +35,8 @@
 #include <wayland-client.h>
 #include "agl-shell-client-protocol.h"
 
+#include <vehiclesignals.h>
+
 // Global indicating whether canned animation should run
 bool runAnimation = true;
 
@@ -169,6 +171,9 @@ int main(int argc, char *argv[])
 	QQmlApplicationEngine engine;
 	QQmlContext *context = engine.rootContext();
 	context->setContextProperty("runAnimation", runAnimation);
+
+	VehicleSignalsConfig vsConfig(myname);
+	context->setContextProperty("VehicleSignals", new VehicleSignals(vsConfig));
 
 	QQmlComponent bg_comp(&engine, QUrl("qrc:/cluster-gauges.qml"));
 	qDebug() << bg_comp.errors();
