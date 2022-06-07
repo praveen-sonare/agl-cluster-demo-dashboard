@@ -69,17 +69,18 @@ add_executable(${PROJECT_NAME}
 
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(WAYLAND_CLIENT REQUIRED wayland-client)
+pkg_check_modules(QTAPPFW_VEHICLE_SIGNALS REQUIRED qtappfw-vehicle-signals)
 
 include_directories(
 	include_directories(${Qt5Gui_PRIVATE_INCLUDE_DIRS})
-	${QTAPPFW_INCLUDE_DIRS}
+	${QTAPPFW_VEHICLE_SIGNALS_INCLUDE_DIRS}
 	${GLIB_INCLUDE_DIRS}
 )
 
 target_link_libraries(${PROJECT_NAME}
 	Qt5::QuickControls2
 	Qt5::QuickWidgets
-	${QTAPPFW_LIBRARIES}
+	${QTAPPFW_VEHICLE_SIGNALS_LIBRARIES}
 	${GLIB_LDFLAGS}
 	${WAYLAND_CLIENT_LIBRARIES}
 )
