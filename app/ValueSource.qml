@@ -112,10 +112,12 @@ Item {
         onAuthorized: {
 	    VehicleSignals.subscribe("Vehicle.Speed")
 	    VehicleSignals.subscribe("Vehicle.Powertrain.CombustionEngine.Engine.Speed")
-	    VehicleSignals.subscribe("Vehicle.ADAS.CruiseControl.IsActive")
-	    VehicleSignals.subscribe("Vehicle.ADAS.CruiseControl.IsSet")
-	    VehicleSignals.subscribe("Vehicle.ADAS.LaneDepartureDetection.IsActive")
-	    VehicleSignals.subscribe("Vehicle.Cabin.Infotainment.Cluster.Mode")
+	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.CruiseEnable")
+	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.CruiseSet")
+	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.CruiseResume")
+	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.CruiseCancel")
+	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.LaneDepartureWarning")
+	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.Info")
 	    VehicleSignals.get("Vehicle.Cabin.Infotainment.HMI.DistanceUnit")
 	    VehicleSignals.subscribe("Vehicle.Cabin.Infotainment.HMI.DistanceUnit")
 	}
@@ -144,23 +146,24 @@ Item {
 	        if(!runAnimation) {
                     valueSource.rpm = parseFloat(value) / 1000
                 }
-            } else if (path === "Vehicle.ADAS.CruiseControl.IsActive" && value === "true") {
+            } else if (path === "Vehicle.Cabin.SteeringWheel.Switches.CruiseEnable" && value === "true") {
                 if(valueSource.cruiseEnabled) {
                     valueSource.cruiseEnabled = false
                     valueSource.cruiseSet = false
                 } else {
                     valueSource.cruiseEnabled = true
                 }
-            } else if (path === "Vehicle.ADAS.CruiseControl.IsSet") {
-                if (value === "true") {
-                    if(valueSource.cruiseEnabled)
-                        valueSource.cruiseSet = true
-                } else {
-                    valueSource.cruiseSet = false
+            } else if ((path === "Vehicle.Cabin.SteeringWheel.Switches.CruiseSet" ||
+                        path === "Vehicle.Cabin.SteeringWheel.Switches.CruiseResume") &&
+                       value == "true") {
+                if(valueSource.cruiseEnabled) {
+                    valueSource.cruiseSet = true
                 }
-            } else if (path === "Vehicle.ADAS.LaneDepartureDetection.IsActive" && value === "true") {
+            } else if (path === "Vehicle.Cabin.SteeringWheel.Switches.CruiseCancel" && value === "true") {
+                valueSource.cruiseSet = false
+            } else if (path === "Vehicle.Cabin.SteeringWheel.Switches.LaneDepartureWarning" && value === "true") {
                 valueSource.laneDepartureWarnEnabled = !valueSource.laneDepartureWarnEnabled
-            } else if (path === "Vehicle.Cabin.Infotainment.Cluster.Mode" && value === "true") {
+            } else if (path === "Vehicle.Cabin.SteeringWheel.Switches.Info" && value === "true") {
                 valueSource.displayNumericSpeeds = !valueSource.displayNumericSpeeds
             } else if (path === "Vehicle.Cabin.Infotainment.HMI.DistanceUnit") {
                 if (value === "km") {
