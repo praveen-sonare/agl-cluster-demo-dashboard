@@ -47,7 +47,7 @@ global_add(void *data, struct wl_registry *reg, uint32_t name,
 	struct agl_shell **shell = static_cast<struct agl_shell **>(data);
 	if (strcmp(interface, agl_shell_interface.name) == 0) {
 		*shell = static_cast<struct agl_shell *>(wl_registry_bind(reg,
-					name, &agl_shell_interface, version)
+					name, &agl_shell_interface, 1)
 		);
 	}
 }
