@@ -111,7 +111,7 @@ Item {
 
         onAuthorized: {
 	    VehicleSignals.subscribe("Vehicle.Speed")
-	    VehicleSignals.subscribe("Vehicle.Powertrain.CombustionEngine.Engine.Speed")
+	    VehicleSignals.subscribe("Vehicle.Powertrain.CombustionEngine.Speed")
 	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.CruiseEnable")
 	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.CruiseSet")
 	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.CruiseResume")
@@ -142,7 +142,7 @@ Item {
 	        if(!runAnimation) {
                     valueSource.kph = parseFloat(value)
                 }
-            } else if (path === "Vehicle.Powertrain.CombustionEngine.Engine.Speed") {
+            } else if (path === "Vehicle.Powertrain.CombustionEngine.Speed") {
 	        if(!runAnimation) {
                     valueSource.rpm = parseFloat(value) / 1000
                 }
