@@ -92,6 +92,30 @@ Item {
     property bool laneDepartureWarnEnabled: false
     property bool displayNumericSpeeds: true
 
+    // Rcar signal
+    property bool parkingBrakeIsEngaged: false
+    property bool engineOn: false
+    property bool oilLevelWarning: false
+    property real oilLevel: 0
+    property bool batteryLevelWarning: false
+
+    property bool is_Seat_Row1_Pos1_IsBelted: false
+    property bool is_Seat_Row1_Pos2_IsBelted: false
+    property bool is_Seat_Row2_Pos1_IsBelted: false
+    property bool is_Seat_Row2_Pos2_IsBelted: false
+    property bool is_Seat_NotIsBelted: false
+
+    property bool is_HighBeamOn: false
+    property bool is_LowBeamOn: false
+    property bool is_BeamOn: false
+
+    property bool is_Row1_Left_IsOpen: false
+    property bool is_Row1_Right_IsOpen: false
+    property bool is_Row2_Left_IsOpen: false
+    property bool is_Row2_Right_IsOpen: false
+    property bool is_Door_IsOpen: false
+
+
     function randomDirection() {
         return Math.random() > 0.5 ? Qt.LeftArrow : Qt.RightArrow;
     }
@@ -112,15 +136,37 @@ Item {
         onAuthorized: {
 	    VehicleSignals.subscribe("Vehicle.Speed")
 	    VehicleSignals.subscribe("Vehicle.Powertrain.CombustionEngine.Speed")
+
 	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.CruiseEnable")
 	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.CruiseSet")
 	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.CruiseResume")
 	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.CruiseCancel")
+
 	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.LaneDepartureWarning")
 	    VehicleSignals.subscribe("Vehicle.Cabin.SteeringWheel.Switches.Info")
+
 	    VehicleSignals.get("Vehicle.Cabin.Infotainment.HMI.DistanceUnit")
 	    VehicleSignals.subscribe("Vehicle.Cabin.Infotainment.HMI.DistanceUnit")
+
+        // Rcar signal
+        VehicleSignals.subscribe("Vehicle.Chassis.ParkingBrake.IsEngaged")
+        VehicleSignals.subscribe("Vehicle.Private.OBD.OilLevel")
+        VehicleSignals.subscribe("Vehicle.Powertrain.Battery.GrossCapacity")
+
+        VehicleSignals.subscribe('Vehicle.Cabin.Seat.Row1.Pos1.IsBelted')
+        VehicleSignals.subscribe('Vehicle.Cabin.Seat.Row1.Pos2.IsBelted')
+        VehicleSignals.subscribe('Vehicle.Cabin.Seat.Row2.Pos1.IsBelted')
+        VehicleSignals.subscribe('Vehicle.Cabin.Seat.Row2.Pos2.IsBelted')
+
+        VehicleSignals.subscribe('Vehicle.Body.Lights.IsHighBeamOn')
+        VehicleSignals.subscribe('Vehicle.Body.Lights.IsLowBeamOn')
+
+        VehicleSignals.subscribe('Vehicle.Cabin.Door.Row1.Left.IsOpen')
+        VehicleSignals.subscribe('Vehicle.Cabin.Door.Row1.Right.IsOpen')
+        VehicleSignals.subscribe('Vehicle.Cabin.Door.Row2.Left.IsOpen')
+        VehicleSignals.subscribe('Vehicle.Cabin.Door.Row2.Right.IsOpen')
 	}
+
 
         onGetSuccessResponse: {
             //console.log("response path = " + path + ", value = " + value)
@@ -145,6 +191,12 @@ Item {
             } else if (path === "Vehicle.Powertrain.CombustionEngine.Speed") {
 	        if(!runAnimation) {
                     valueSource.rpm = parseFloat(value) / 1000
+
+                    if (valueSource.rpm > 0) {
+                        valueSource.engineOn = true
+                    } else {
+                        valueSource.engineOn = false
+                    }
                 }
             } else if (path === "Vehicle.Cabin.SteeringWheel.Switches.CruiseEnable" && value === "true") {
                 if(valueSource.cruiseEnabled) {
@@ -171,6 +223,126 @@ Item {
                 } else if (value === "mi") {
                     valueSource.mphDisplay = true
                 }
+            } else if (path === "Vehicle.Chassis.ParkingBrake.IsEngaged") {
+                if (value === "true") {
+                    valueSource.parkingBrakeIsEngaged = true
+                } else if (value === "false") {
+                    valueSource.parkingBrakeIsEngaged = false
+                }
+                
+            } else if (path === "Vehicle.Private.OBD.OilLevel") {
+                if (value < 10) {
+                    valueSource.oilLevelWarning = true
+                } else {
+                    valueSource.oilLevelWarning = false
+                }
+            } else if (path === "Vehicle.Powertrain.Battery.GrossCapacity") {
+                if (value < 10) {
+                    valueSource.batteryLevelWarning = true
+                } else {
+                    valueSource.batteryLevelWarning = false
+                }
+            } else if (path === 'Vehicle.Cabin.Seat.Row1.Pos1.IsBelted' ||
+                       path === 'Vehicle.Cabin.Seat.Row1.Pos2.IsBelted' ||
+                       path === 'Vehicle.Cabin.Seat.Row2.Pos1.IsBelted' ||
+                       path === 'Vehicle.Cabin.Seat.Row2.Pos2.IsBelted' ) {
+
+                if ( path === 'Vehicle.Cabin.Seat.Row1.Pos1.IsBelted' ) {
+                    if (value === "true") {
+                        valueSource.is_Seat_Row1_Pos1_IsBelted = true
+                    } else if (value === "false") {
+                        valueSource.is_Seat_Row1_Pos1_IsBelted = false
+                    }
+                } else if ( path === 'Vehicle.Cabin.Seat.Row1.Pos2.IsBelted' ) {
+                    if (value === "true") {
+                        valueSource.is_Seat_Row1_Pos2_IsBelted = true
+                    } else if (value === "false") {
+                        valueSource.is_Seat_Row1_Pos2_IsBelted = false
+                    }
+                } else if ( path === 'Vehicle.Cabin.Seat.Row2.Pos1.IsBelted' ) {
+                    if (value === "true") {
+                        valueSource.is_Seat_Row2_Pos1_IsBelted = true
+                    } else if (value === "false") {
+                        valueSource.is_Seat_Row2_Pos1_IsBelted = false
+                    }
+                } else if ( path === 'Vehicle.Cabin.Seat.Row2.Pos2.IsBelted' ) {
+                    if (value === "true") {
+                        valueSource.is_Seat_Row2_Pos2_IsBelted = true
+                    } else if (value === "false") {
+                        valueSource.is_Seat_Row2_Pos2_IsBelted = false
+                    }
+                }
+
+                if (valueSource.is_Seat_Row1_Pos1_IsBelted && 
+                    valueSource.is_Seat_Row1_Pos2_IsBelted && 
+                    valueSource.is_Seat_Row2_Pos1_IsBelted &&
+                    valueSource.is_Seat_Row2_Pos2_IsBelted ) {
+                        valueSource.is_Seat_NotIsBelted = false
+                } else{
+                        valueSource.is_Seat_NotIsBelted = true
+                }
+
+            } else if (path === 'Vehicle.Body.Lights.IsHighBeamOn' ||
+                       path === 'Vehicle.Body.Lights.IsLowBeamOn' ) {
+                if ( path === 'Vehicle.Body.Lights.IsHighBeamOn' ) {
+                    if (value === "true") {
+                        valueSource.is_HighBeamOn = true
+                    } else if (value === "false") {
+                        valueSource.is_HighBeamOn = false
+                    }
+                } else if ( path === 'Vehicle.Body.Lights.IsLowBeamOn' ) {
+                    if (value === "true") {
+                        valueSource.is_LowBeamOn = true
+                    } else if (value === "false") {
+                        valueSource.is_LowBeamOn = false
+                    }
+                }
+
+                if (valueSource.is_HighBeamOn || 
+                    valueSource.is_LowBeamOn ) {
+                        valueSource.is_BeamOn = true
+                } else{
+                        valueSource.is_BeamOn = false
+                }
+            } else if (path === 'Vehicle.Cabin.Door.Row1.Left.IsOpen' ||
+                       path === 'Vehicle.Cabin.Door.Row1.Right.IsOpen' ||
+                       path === 'Vehicle.Cabin.Door.Row2.Left.IsOpen' ||
+                       path === 'Vehicle.Cabin.Door.Row2.Right.IsOpen') {
+                if ( path === 'Vehicle.Cabin.Door.Row1.Left.IsOpen' ) {
+                    if (value === "true") {
+                        valueSource.is_Row1_Left_IsOpen = true
+                    } else if (value === "false") {
+                        valueSource.is_Row1_Left_IsOpen = false
+                    }
+                } else if ( path === 'Vehicle.Cabin.Door.Row1.Right.IsOpen' ) {
+                    if (value === "true") {
+                        valueSource.is_Row1_Right_IsOpen = true
+                    } else if (value === "false") {
+                        valueSource.is_Row1_Right_IsOpen = false
+                    }
+                } else if ( path === 'Vehicle.Cabin.Door.Row2.Left.IsOpen' ) {
+                    if (value === "true") {
+                        valueSource.is_Row2_Left_IsOpen = true
+                    } else if (value === "false") {
+                        valueSource.is_Row2_Left_IsOpen = false
+                    }
+                } else if ( path === 'Vehicle.Cabin.Door.Row2.Right.IsOpen' ) {
+                    if (value === "true") {
+                        valueSource.is_Row2_Right_IsOpen = true
+                    } else if (value === "false") {
+                        valueSource.is_Row2_Right_IsOpen = false
+                    }
+                }
+
+                if (valueSource.is_Row1_Left_IsOpen || 
+                    valueSource.is_Row1_Right_IsOpen || 
+                    valueSource.is_Row2_Left_IsOpen ||
+                    valueSource.is_Row2_Right_IsOpen ) {
+                        valueSource.is_Door_IsOpen = true
+                } else {
+                        valueSource.is_Door_IsOpen = false
+                }
+
             }
         }
     }

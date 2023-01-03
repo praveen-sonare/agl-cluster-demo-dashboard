@@ -131,7 +131,7 @@ ApplicationWindow {
                 border.color: "grey"
 
                 Image {
-                    source: valueSource.startUp ? './images/AGL_Icons_Engine_yellow.svg' : './images/AGL_Icons_Engine.svg'
+                    source: valueSource.engineOn ? './images/AGL_Icons_Engine_yellow.svg' : './images/AGL_Icons_Engine.svg'
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: height
@@ -150,7 +150,7 @@ ApplicationWindow {
                 border.color: "grey"
 
                 Image {
-                    source: valueSource.startUp ? './images/AGL_Icons_Oil_red.svg' : './images/AGL_Icons_Oil.svg'
+                    source: valueSource.oilLevelWarning ? './images/AGL_Icons_Oil_red.svg' : './images/AGL_Icons_Oil.svg'
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: height
@@ -169,7 +169,7 @@ ApplicationWindow {
                 border.color: "grey"
 
                 Image {
-                    source: valueSource.startUp ? './images/AGL_Icons_Battery_red.svg' : './images/AGL_Icons_Battery.svg'
+                    source: valueSource.batteryLevelWarning ? './images/AGL_Icons_Battery_red.svg' : './images/AGL_Icons_Battery.svg'
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: height
@@ -207,7 +207,7 @@ ApplicationWindow {
                 border.color: "grey"
 
                 Image {
-                    source: valueSource.startUp ? './images/AGL_Icons_ParkingBrake_red.svg' : './images/AGL_Icons_ParkingBrake.svg'
+                    source: valueSource.parkingBrakeIsEngaged ? './images/AGL_Icons_ParkingBrake_red.svg' : './images/AGL_Icons_ParkingBrake.svg'
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: height
@@ -269,7 +269,7 @@ ApplicationWindow {
                 border.color: "grey"
 
                 Image {
-                    source: valueSource.startUp ? './images/AGL_Icons_Seatbelt_red.svg' : './images/AGL_Icons_Seatbelt.svg'
+                    source: valueSource.is_Seat_NotIsBelted ? './images/AGL_Icons_Seatbelt_red.svg' : './images/AGL_Icons_Seatbelt.svg'
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: height
@@ -288,7 +288,7 @@ ApplicationWindow {
                 border.color: "grey"
 
                 Image {
-                    source: valueSource.startUp ? './images/AGL_Icons_OpenDoor_red.svg' : './images/AGL_Icons_OpenDoor.svg'
+                    source: valueSource.is_Door_IsOpen ? './images/AGL_Icons_OpenDoor_red.svg' : './images/AGL_Icons_OpenDoor.svg'
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: height
@@ -307,7 +307,7 @@ ApplicationWindow {
                 border.color: "grey"
 
                 Image {
-                    source: valueSource.startUp ? './images/AGL_Icons_Lights_red.svg' : './images/AGL_Icons_Lights.svg'
+                    source: valueSource.is_BeamOn ? './images/AGL_Icons_Lights_red.svg' : './images/AGL_Icons_Lights.svg'
                     anchors.verticalCenter: parent.verticalCenter
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: height
