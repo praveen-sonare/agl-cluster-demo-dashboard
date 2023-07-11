@@ -157,7 +157,7 @@ static QScreen *find_screen(const char *screen_name)
 
 int main(int argc, char *argv[])
 {
-	QString myname = QString("cluster-dashboard");
+	QString myname = QString("scooterson-dashboard");
 	struct agl_shell *agl_shell;
 	struct wl_output *output;
 
